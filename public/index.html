@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f5f2" />
+    <meta name="description" content="A research chat that remembers when you asked." />
+    <title>minimi — research chat</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar" aria-label="Chat history">
+        <div class="brand-row">
+          <a class="brand" href="/" aria-label="minimi home">
+            <span class="brand-mark" aria-hidden="true">m</span>
+            <span>minimi</span>
+          </a>
+          <button class="icon-button sidebar-close" id="close-sidebar" aria-label="Close chat history">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+          </button>
+        </div>
+
+        <button class="new-chat" id="new-chat">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" /></svg>
+          <span>New chat</span>
+          <kbd>⌘ K</kbd>
+        </button>
+
+        <div class="history-label-row">
+          <span class="eyebrow">Your conversations</span>
+          <span class="history-count" id="history-count">0</span>
+        </div>
+        <label class="history-search">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.25"/><path d="m12.5 12.5 4 4"/></svg>
+          <input id="history-filter" type="search" placeholder="Find a conversation" autocomplete="off" />
+        </label>
+        <nav class="conversation-list" id="conversation-list" aria-label="Recent conversations"></nav>
+
+        <div class="sidebar-bottom">
+          <div class="memory-note">
+            <span class="memory-note-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20"><path d="M10 3.5v13M5.5 7.2c.8-1.2 2.5-2 4.5-2s3.7.8 4.5 2M5.5 12.8c.8 1.2 2.5 2 4.5 2s3.7-.8 4.5-2" /></svg>
+            </span>
+            <span><strong>Memory stays here</strong><small>Your chat history is stored locally.</small></span>
+          </div>
+          <button class="text-button clear-history" id="clear-history">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5.5h12M8 5.5V3.8h4v1.7m-6.2 0 .7 10.7h6.9l.7-10.7M8.2 8v5.7M11.8 8v5.7" /></svg>
+            Clear all history
+          </button>
+          <div class="sidebar-version"><span class="status-dot" id="status-dot"></span><span id="status-label">Connecting…</span></div>
+        </div>
+      </aside>
+
+      <div class="mobile-scrim" id="mobile-scrim"></div>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <button class="icon-button menu-button" id="open-sidebar" aria-label="Open chat history">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13" /></svg>
+          </button>
+          <div class="topbar-title"><span class="topbar-kicker">A research companion</span><span class="topbar-separator">/</span><span id="active-title">New conversation</span></div>
+          <div class="topbar-date" id="today-label"></div>
+        </header>
+
+        <section class="chat-scroll" id="chat-scroll" aria-live="polite">
+          <div class="welcome" id="welcome">
+            <div class="welcome-orbit" aria-hidden="true"><span></span><span></span><span></span><span></span><i></i></div>
+            <p class="eyebrow welcome-eyebrow">Curious today. Clear tomorrow.</p>
+            <h1>Good questions<br /><em>deserve follow-through.</em></h1>
+            <p class="welcome-copy">I search the web for what’s current, and remember what we’ve already figured out together.</p>
+            <div class="starter-grid">
+              <button class="starter-card" data-prompt="What did I ask you on 3 November?">
+                <span class="starter-icon date-icon">03</span>
+                <span><strong>Look back</strong><small>Find what we discussed on a date</small></span>
+                <span class="starter-arrow">↗</span>
+              </button>
+              <button class="starter-card" data-prompt="What has changed in the products we discussed recently?">
+                <span class="starter-icon update-icon">↻</span>
+                <span><strong>Check for changes</strong><small>Revisit a decision with fresh sources</small></span>
+                <span class="starter-arrow">↗</span>
+              </button>
+            </div>
+            <p class="welcome-footnote"><span class="tiny-globe">◎</span> Web search with sources &nbsp;·&nbsp; Saved conversation memory</p>
+          </div>
+
+          <div class="message-list" id="message-list"></div>
+          <div class="scroll-anchor" id="scroll-anchor"></div>
+        </section>
+
+        <footer class="composer-zone">
+          <div class="memory-status" id="memory-status" hidden></div>
+          <form class="composer" id="composer">
+            <label class="sr-only" for="message-input">Ask minimi a question</label>
+            <textarea id="message-input" rows="1" maxlength="20000" placeholder="Ask a question, or pick up where we left off…"></textarea>
+            <div class="composer-bottom">
+              <div class="composer-hint"><span class="composer-spark">✳</span><span>Web search when it matters. Memory when it helps.</span></div>
+              <div class="composer-actions">
+                <span class="key-hint">↵ to send</span>
+                <button class="send-button" id="send-button" type="submit" aria-label="Send message">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15.5v-11m0 0L5.5 9m4.5-4.5L14.5 9" /></svg>
+                </button>
+                <button class="send-button stop-button" id="stop-button" type="button" aria-label="Stop response" hidden>
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="5.5" y="5.5" width="9" height="9" rx="1.5" /></svg>
+                </button>
+              </div>
+            </div>
+          </form>
+          <p class="privacy-line">History is saved on this device. Relevant past turns may be sent with your question to answer it.</p>
+        </footer>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
