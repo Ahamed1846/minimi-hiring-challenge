@@ -1,6 +1,6 @@
-# minimi
+# Daymark
 
-A temporal-first research chat: it searches the live web for current claims and remembers what you asked in earlier chats. Built with Node.js, Express, SQLite, and the OpenAI Responses API.
+A temporal-first research chat built for the minimi hiring challenge. Daymark searches the live web for current claims and remembers what you asked in earlier chats. Built with Node.js, Express, SQLite, and the OpenAI Responses API.
 
 ## Run locally
 
@@ -8,16 +8,14 @@ Requirements: Node.js 20 or newer.
 
 ```sh
 npm install
-cp .env.example .env
-# Add your key to OPENAI_API_KEY in .env
 npm run dev
 ```
 
-Open [http://127.0.0.1:3000](http://127.0.0.1:3000). The API key remains on the server. `OPENAI_MODEL` and `PORT` are optional; the default model is `gpt-6-astra`.
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000). If `OPENAI_API_KEY` is not set in the environment, the app asks for it on first launch and saves it in `data/settings.json` with user-only file permissions. It is not stored in browser storage, chat history, or Git. The local server uses it for OpenAI requests. `OPENAI_MODEL` and `PORT` are optional; the default model is `gpt-6-astra`.
 
 ## Memory and privacy
 
-Conversations are stored in `data/minimi.sqlite`, which is ignored by Git. Each browser profile has its own local history ID. The UI can delete one conversation or clear all of its history. To answer a follow-up, minimi sends the current thread and a bounded selection of relevant dated turns to the model API; it does not upload the full SQLite database. Do not expose this local server to other users without adding authentication and access controls.
+Conversations and local settings are stored under `data/`, which is ignored by Git. Each browser profile has its own local history ID. The UI can delete one conversation or clear all of its history. To answer a follow-up, Daymark sends the current thread and a bounded selection of relevant dated turns to the model API; it does not upload the full SQLite database. The API key is plain text protected by local file permissions, not encrypted. Do not expose this local server to other users without adding authentication and access controls.
 
 ## Quality checks
 

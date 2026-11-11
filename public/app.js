@@ -4,7 +4,9 @@ const elements = Object.fromEntries([
   'sidebar', 'mobile-scrim', 'new-chat', 'open-sidebar', 'close-sidebar', 'conversation-list',
   'history-filter', 'history-count', 'clear-history', 'today-label', 'active-title', 'welcome',
   'message-list', 'chat-scroll', 'scroll-anchor', 'composer', 'message-input', 'send-button',
-  'stop-button', 'memory-status', 'status-dot', 'status-label', 'toast',
+  'stop-button', 'memory-status', 'status-dot', 'status-label', 'toast', 'api-settings-button',
+  'api-key-dialog', 'api-key-form', 'api-key-input', 'api-key-status', 'toggle-api-key',
+  'dismiss-api-key', 'save-api-key',
 ].map((id) => [id, document.getElementById(id)]));
 
 let activeConversationId = null;
@@ -13,13 +15,14 @@ let messages = [];
 let activeAbort = null;
 let activeAbortMode = null;
 let toastTimer = null;
+let apiReady = false;
 
 function getOrCreateUserId() {
-  let id = localStorage.getItem('minimi-user-id');
+  let id = localStorage.getItem('daymark-user-id') || localStorage.getItem('minimi-user-id');
   if (!id) {
     id = crypto.randomUUID();
-    localStorage.setItem('minimi-user-id', id);
   }
+  localStorage.setItem('daymark-user-id', id);
   return id;
 }
 
@@ -53,8 +56,62 @@ function showToast(message) {
 function setBusy(busy) {
   elements['send-button'].hidden = busy;
   elements['stop-button'].hidden = !busy;
-  elements['message-input'].disabled = busy;
-  if (!busy) elements['message-input'].focus();
+  elements['message-input'].disabled = busy || !apiReady;
+  elements['send-button'].disabled = busy || !apiReady;
+  if (!busy && apiReady) elements['message-input'].focus();
+}
+
+function updateApiStatus(health) {
+  apiReady = Boolean(health.ready);
+  elements['status-dot'].classList.toggle('is-offline', !apiReady);
+  elements['status-label'].textContent = apiReady ? `Search ready · ${health.model}` : 'API key needed';
+  elements['api-settings-button'].textContent = apiReady ? 'API key settings' : 'Add API key';
+  elements['message-input'].disabled = !apiReady || Boolean(activeAbort);
+  elements['send-button'].disabled = !apiReady || Boolean(activeAbort);
+}
+
+function openApiKeyDialog() {
+  const dialog = elements['api-key-dialog'];
+  if (!dialog.open) dialog.showModal();
+  elements['api-key-status'].hidden = true;
+  elements['api-key-status'].textContent = '';
+  elements['api-key-input'].focus();
+}
+
+async function saveApiKey(event) {
+  event.preventDefault();
+  const apiKey = elements['api-key-input'].value.trim();
+  const status = elements['api-key-status'];
+  const button = elements['save-api-key'];
+  if (!apiKey) {
+    status.textContent = 'Paste your OpenAI API key to continue.';
+    status.hidden = false;
+    elements['api-key-input'].focus();
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Saving locally…';
+  status.hidden = true;
+  try {
+    const response = await fetch('/api/settings/api-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || `Could not save key (${response.status}).`);
+    elements['api-key-input'].value = '';
+    updateApiStatus(result);
+    elements['api-key-dialog'].close();
+    showToast('Key saved on this device. Try a question to confirm it works.');
+  } catch (error) {
+    status.textContent = error.message;
+    status.hidden = false;
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Save key on this device';
+  }
 }
 
 function showSidebar(open) {
@@ -243,7 +300,7 @@ function renderMessage(message) {
   if (message.role === 'assistant') {
     const avatar = document.createElement('div');
     avatar.className = 'assistant-avatar';
-    avatar.textContent = 'm';
+    avatar.textContent = 'd';
     wrapper.append(avatar);
   }
 
@@ -253,7 +310,7 @@ function renderMessage(message) {
   meta.className = 'message-meta';
   const sender = document.createElement('span');
   sender.className = 'message-sender';
-  sender.textContent = message.role === 'user' ? 'You' : 'minimi';
+  sender.textContent = message.role === 'user' ? 'You' : 'Daymark';
   const time = document.createElement('time');
   time.className = 'message-time';
   time.dateTime = message.createdAt || new Date().toISOString();
@@ -433,7 +490,7 @@ async function streamMessage(question) {
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Minimi-User': userId },
+      headers: { 'Content-Type': 'application/json', 'X-Daymark-User': userId },
       body: JSON.stringify({ userId, conversationId: activeConversationId, message: question, timezone }),
       signal: activeAbort.signal,
     });
@@ -499,6 +556,7 @@ async function streamMessage(question) {
       body.classList.add('error-text');
       showToast(error.message);
       renderConversation();
+      if (error.message.includes('API key was rejected')) openApiKeyDialog();
     }
   } finally {
     activeAbort = null;
@@ -551,6 +609,24 @@ elements['clear-history'].addEventListener('click', async () => {
   } catch (error) { showToast(error.message); }
 });
 
+elements['api-settings-button'].addEventListener('click', openApiKeyDialog);
+elements['api-key-form'].addEventListener('submit', saveApiKey);
+elements['dismiss-api-key'].addEventListener('click', () => elements['api-key-dialog'].close());
+elements['api-key-dialog'].addEventListener('close', () => {
+  elements['api-key-input'].value = '';
+  elements['api-key-input'].type = 'password';
+  elements['toggle-api-key'].textContent = 'Show';
+  elements['toggle-api-key'].setAttribute('aria-label', 'Show API key');
+});
+elements['toggle-api-key'].addEventListener('click', () => {
+  const input = elements['api-key-input'];
+  const reveal = input.type === 'password';
+  input.type = reveal ? 'text' : 'password';
+  elements['toggle-api-key'].textContent = reveal ? 'Hide' : 'Show';
+  elements['toggle-api-key'].setAttribute('aria-label', `${reveal ? 'Hide' : 'Show'} API key`);
+  input.focus();
+});
+
 document.querySelectorAll('.starter-card').forEach((card) => card.addEventListener('click', () => {
   elements['message-input'].value = card.dataset.prompt;
   resizeInput();
@@ -570,10 +646,9 @@ async function initialize() {
   setToday();
   try {
     const health = await fetch('/api/health').then((response) => response.json());
-    elements['status-dot'].classList.toggle('is-offline', !health.ready);
-    elements['status-label'].textContent = health.ready ? `Search ready · ${health.model}` : 'Add API key to start';
-    if (!health.ready) showToast('Add OPENAI_API_KEY to .env, then restart minimi.');
+    updateApiStatus(health);
     await loadConversations();
+    if (!health.ready) openApiKeyDialog();
   } catch (error) {
     elements['status-dot'].classList.add('is-offline');
     elements['status-label'].textContent = 'Server unavailable';

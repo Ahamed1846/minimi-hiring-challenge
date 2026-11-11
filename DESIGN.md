@@ -1,4 +1,4 @@
-# minimi: temporal-first research chat
+# Daymark: temporal-first research chat
 
 ## How it works
 
@@ -13,7 +13,7 @@ Browser chat ──SSE──> one Responses API loop ──web_search (max 4 cal
 
 Every turn is saved with an absolute UTC timestamp and the browser’s IANA timezone. Before the model runs, `chrono-node` plus small explicit weekday/month rules resolve the user’s first date reference against the current local calendar. SQLite FTS5 retrieves related turns, and exact local-date matches take priority. The model receives the current clock, the resolved range, and a small set of timestamped records. An absent match is explicit context, so it can say it has no record instead of inventing one.
 
-The model gets one tool: OpenAI’s hosted `web_search`. `tool_choice` stays automatic for ordinary conversation and memory lookup; a small freshness rule requires search for concrete current checks. Search is capped at four built-in calls. Responses stream as SSE, and citation annotations become inline links and source cards. The browser talks only to the local server; the OpenAI key stays in `.env`.
+The model gets one tool: OpenAI’s hosted `web_search`. `tool_choice` stays automatic for ordinary conversation and memory lookup; a small freshness rule requires search for concrete current checks. Search is capped at four built-in calls. Responses stream as SSE, and citation annotations become inline links and source cards. The browser talks only to the local server. A key can come from `.env` or the in-app setup; the latter is saved in the Git-ignored local data directory with user-only file permissions and never returned to the browser.
 
 ## Why this shape
 

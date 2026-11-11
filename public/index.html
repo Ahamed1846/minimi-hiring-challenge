@@ -3,18 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f6f5f2" />
+    <meta name="theme-color" content="#f7f9fd" />
     <meta name="description" content="A research chat that remembers when you asked." />
-    <title>minimi — research chat</title>
+    <title>Daymark | research chat</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar" id="sidebar" aria-label="Chat history">
         <div class="brand-row">
-          <a class="brand" href="/" aria-label="minimi home">
-            <span class="brand-mark" aria-hidden="true">m</span>
-            <span>minimi</span>
+          <a class="brand" href="/" aria-label="Daymark home">
+            <span class="brand-mark" aria-hidden="true">d</span>
+            <span>Daymark</span>
           </a>
           <button class="icon-button sidebar-close" id="close-sidebar" aria-label="Close chat history">
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
@@ -60,7 +60,10 @@
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13" /></svg>
           </button>
           <div class="topbar-title"><span class="topbar-kicker">A research companion</span><span class="topbar-separator">/</span><span id="active-title">New conversation</span></div>
-          <div class="topbar-date" id="today-label"></div>
+          <div class="topbar-actions">
+            <button class="key-settings-button" id="api-settings-button" type="button" aria-haspopup="dialog">Add API key</button>
+            <div class="topbar-date" id="today-label"></div>
+          </div>
         </header>
 
         <section class="chat-scroll" id="chat-scroll" aria-live="polite">
@@ -91,13 +94,13 @@
         <footer class="composer-zone">
           <div class="memory-status" id="memory-status" hidden></div>
           <form class="composer" id="composer">
-            <label class="sr-only" for="message-input">Ask minimi a question</label>
-            <textarea id="message-input" rows="1" maxlength="20000" placeholder="Ask a question, or pick up where we left off…"></textarea>
+            <label class="sr-only" for="message-input">Ask Daymark a question</label>
+            <textarea id="message-input" rows="1" maxlength="20000" placeholder="Ask a question, or pick up where we left off…" disabled></textarea>
             <div class="composer-bottom">
               <div class="composer-hint"><span class="composer-spark">✳</span><span>Web search when it matters. Memory when it helps.</span></div>
               <div class="composer-actions">
                 <span class="key-hint">↵ to send</span>
-                <button class="send-button" id="send-button" type="submit" aria-label="Send message">
+                <button class="send-button" id="send-button" type="submit" aria-label="Send message" disabled>
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15.5v-11m0 0L5.5 9m4.5-4.5L14.5 9" /></svg>
                 </button>
                 <button class="send-button stop-button" id="stop-button" type="button" aria-label="Stop response" hidden>
@@ -110,6 +113,24 @@
         </footer>
       </main>
     </div>
+    <dialog class="key-dialog" id="api-key-dialog" aria-labelledby="api-key-heading" aria-describedby="api-key-description">
+      <form class="key-dialog-form" id="api-key-form">
+        <p class="eyebrow key-dialog-eyebrow">One-time setup</p>
+        <h2 id="api-key-heading">Connect your OpenAI key</h2>
+        <p class="key-dialog-copy" id="api-key-description">Daymark uses this key for answers and live web search.</p>
+        <label class="api-key-label" for="api-key-input">OpenAI API key</label>
+        <div class="api-key-field">
+          <input id="api-key-input" type="password" name="apiKey" placeholder="Paste your API key" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="1024" required />
+          <button class="key-reveal-button" id="toggle-api-key" type="button" aria-label="Show API key">Show</button>
+        </div>
+        <p class="key-storage-note">Saved on this device with user-only file permissions. It is not encrypted or stored in browser storage or chat history. The server uses it when calling OpenAI.</p>
+        <p class="key-form-status" id="api-key-status" role="status" aria-live="polite" hidden></p>
+        <div class="key-dialog-actions">
+          <button class="secondary-button" id="dismiss-api-key" type="button">Not now</button>
+          <button class="primary-button" id="save-api-key" type="submit">Save key on this device</button>
+        </div>
+      </form>
+    </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script type="module" src="/app.js"></script>
   </body>

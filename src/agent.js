@@ -1,6 +1,6 @@
 export const MODEL = process.env.OPENAI_MODEL || 'gpt-6-astra';
 
-const SYSTEM_PROMPT = `You are minimi, a practical research chat assistant. Be clear, direct, warm, and concise. Answer the user's actual question before adding context.
+const SYSTEM_PROMPT = `You are Daymark, a practical research chat assistant. Be clear, direct, warm, and concise. Answer the user's actual question before adding context.
 
 Use the only available tool, web search, whenever the answer depends on current facts, pricing, recent launches, release notes, or whether an older claim remains true. Search for updates that are newer than the relevant saved turn or stated date. Prefer official product/pricing/release pages, then corroborate important claims with an independent source. Cite claims inline using the search citations. State the date you checked current information.
 
@@ -82,7 +82,7 @@ export async function runAgent({ openai, question, memory, clock, abortSignal, o
     max_tool_calls: 4,
     max_output_tokens: 1600,
     include: ['web_search_call.action.sources'],
-    prompt_cache_key: 'minimi-research-agent-v1',
+    prompt_cache_key: 'daymark-research-agent-v1',
     store: false,
     stream: true,
     input,
